@@ -1,1 +1,1 @@
-# league-uptime
+# League-Uptime
