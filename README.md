@@ -13,7 +13,7 @@ a funny little project to track how long someone has been playing league of lege
 
 ## License
 
-GNU 3.0
+GNU General Public License 3.0
 
 ## Contributors
 
