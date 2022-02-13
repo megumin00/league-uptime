@@ -1,4 +1,4 @@
 {
-    "joe" : true,
-	"autoload" : true
+	"autoload" : true,
+	"ignore_bots" : true
 }
