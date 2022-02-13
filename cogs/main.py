@@ -15,7 +15,8 @@ class Main(commands.Cog):
         
         f = open("config.json")
         self.configs = json.load(f)
-        
+
+        print("Command cogs imported")
     def now(self):
         now = datetime.now()
         dt_string = str(now.strftime("`%H:%M:%S` `%d/%m/%Y`"))
@@ -51,7 +52,8 @@ class Main(commands.Cog):
         else:
             await self.log_channel.send(f"[{self.now()}] [SUCCESS] <@{message.author.id}> used !status.")
             currently_active = {}
-            
+
+            #all guilds bot is in
             for guilditem in self.bot.guilds:
                 await message.channel.send(f"Guild: {guilditem}")
                 

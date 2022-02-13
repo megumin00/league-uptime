@@ -48,16 +48,21 @@ class main:
             self.log_channel = await bot.fetch_channel(int(self.creds["log_channel"]))
             self.stat_channel = await bot.fetch_channel(int(self.creds["stat_channel"]))
             self.host = await bot.fetch_user(self.creds["host"])
+
+            active = 'Bot has logged in as {0.user}'.format(bot)
+            await self.log_channel.send(active)
+            print(active)
             
-            print('We have logged in as {0.user}'.format(bot))
-            await self.log_channel.send("/// start-log ///")
-            await self.log_channel.send(f"[{self.now()}] [SUCCESS] Bot online.")
-            await self.log_channel.send(f"[{self.now()}] [SUCCESS] Loading config.json...")
-            await self.log_channel.send(f"[{self.now()}] config.json contents:.")
+            await self.log_channel.send(f"""
+================
+/// `[START] log` ///
+[{self.now()}] [SUCCESS] Bot online.
+[{self.now()}] [SUCCESS] Loading config.json...
+[{self.now()}] config.json contents:.""")
             for i in self.config:
                 await self.log_channel.send(f"[{self.now()}] `{i}` : `{self.config[i]}`")
             await self.log_channel.send(f"[{self.now()}] [END-LIST]")
-            await self.log_channel.send("/// end-of-init-log ///")
+            await self.log_channel.send("/// `[END] main-init-log` ///")
         
     def now(self):
         now = datetime.now()
