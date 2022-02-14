@@ -12,6 +12,10 @@ Now includes/is planning to add functions to track user activity in general and 
 -   `asyncio`     -- to run code asynchronously 
 -   `datetime`    -- time related items
 
+## Functions
+
+- log all user statuses on initialization + continue to log changes in user activity
+
 ## TODOs
 1. fix bug with custom status and logging
 2. add discord status tracking functions (online, dnd, idle, offline)
