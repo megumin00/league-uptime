@@ -20,6 +20,7 @@ Now includes/is planning to add functions to track user activity in general and 
 5. clean up code (rewrite main and commands.cog), clean up events
 6. graph data just for the sake of it
 7. do some cool stuff with it maybe 
+8. clean the code its spaghetti rn
 
 ## License
 GPL 3.0
