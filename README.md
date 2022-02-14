@@ -1,5 +1,5 @@
-# League-Uptime
-a funny little project to track how long someone has been playing league of legends for discord.
+# fox-tracker
+a funny little project to track users on discord
 Now includes/is planning to add functions to track user activity in general and aims to track sleep schedules, spotify activity and more.
 
 ## Dependencies
@@ -15,6 +15,8 @@ Now includes/is planning to add functions to track user activity in general and 
 3. base sleep tracker on discord status tracking
 4. upload logged statistics to a server, whether that is to a google spreadsheet or to a personal server via ssh & scp
 5. clean up code (rewrite main and commands.cog), clean up events
+6. graph data just for the sake of it
+7. do some cool stuff with it maybe 
 
 ## License
 GPL 3.0
