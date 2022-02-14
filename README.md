@@ -1,6 +1,6 @@
 # League-Uptime
 a funny little project to track how long someone has been playing league of legends for discord.
-Now includes functions to track user activity in general and aims to track sleep schedules, spotify activity and more.
+Now includes/is planning to add functions to track user activity in general and aims to track sleep schedules, spotify activity and more.
 
 ## Dependencies
 
@@ -17,7 +17,7 @@ Now includes functions to track user activity in general and aims to track sleep
 5. clean up code (rewrite main and commands.cog), clean up events
 
 ## License
-GNU GPL 3.0
+GPL 3.0
 
 ## Contributors
 suwa
