@@ -1,4 +1,5 @@
-# fox-tracker [test](https://media.discordapp.net/attachments/777935642004553792/942833728672129094/senko_dub.png)
+# [image_banner](https://media.discordapp.net/attachments/777935642004553792/942833728672129094/senko_dub.png)
+# fox-tracker 
 a funny little project to track users on discord
 Now includes/is planning to add functions to track user activity in general and aims to track sleep schedules, spotify activity and more.
 
