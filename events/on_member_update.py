@@ -19,109 +19,9 @@ class on_member_update(commands.Cog):
 
         self.current_activities = {}
 
-
-        
-    @commands.command()
-    async def sort_values(self, before_activities, after_activities, uid, cause):
-        self.stat_channel = await self.bot.fetch_channel(self.creds["stat_channel"])
-        user = await self.bot.fetch_user(uid)
-        embed = discord.Embed(title = f"[CYCLE START] [{self.now()}]",
-                                    url = "https://github.com/megumin00/league-uptime",
-                                    description=f"caused by {cause}",
-                                    color = 0xff0000)
-        embed.set_author(name=f"{user.name}#{user.discriminator}", icon_url = user.avatar_url)
-        
-        activity_typecases = {"<class 'discord.activity.Game'>" : "game_activity",
-                              "<class 'discord.activity.CustomActivity'>" : "custom_activity",
-                              "<class 'discord.activity.Spotify'>" : "spotify_activity",
-                              "<class 'discord.activity.Activity'>" : "activity_activity"}
-
-        return_dict = {uid: {}}
-        
-        for k, v in activity_typecases.items():
-            #eg. k = "<class 'discord.activity.Game'>", v = "game_activity"
-            for i in after_activities:
-                if str(type(i)) == k:
-                    #create embed rn
-                    #send message so we can rereference later w/ message id
-                    #if the current activity being added to field is spotify it will include additional info
-                    
-                    #if before_activities is equals to none (meaning this is caused by on_ready event)
-                    if before_activities == None:
-                        if v == "spotify_activity":
-                            embed.add_field(name=i, value=f"""
-None => {i.name}
-Title: `{i.title}`
-Artist: `{i.artist}`
-ID: `{i.track_id}`""", inline = True)
-                        else:
-                            embed.add_field(name = v, value = f"None => {i.name}")
-                    
-                    #if before_activities has content in it
-                    else:
-                        #checks if keys are same, lesser or greater. (0 = same, 1 = before missing, 2 = after missing)
-                        case = await self.find_equality(before_activities, after_activities, uid)
-                        status_code = case["status_code"]
-                        before_activities = case["before_dict"]
-                        after_activities = case["after_dict"]
-                        
-                        for x in case["all_keys"]:
-                            if x == "spotify_activity":
-                                a = after_activities[x]
-                                b = before_activities[x]
-                                if a == None:
-                                    a_title = None
-                                    a_artist = None
-                                    a_track_id = None
-                                    
-                                else:
-                                    a_title = a.title
-                                    a_artist = a.artist
-                                    a_track_id = a.track_id
-                                
-                                if b == None:
-                                    b_title = None
-                                    b_artist = None
-                                    b_track_id = None
-                                
-                                else:
-                                    b_title = b.title
-                                    b_artist = b.artist
-                                    b_track_id = b.track_id
-                                old_val = f"""
-Title: `{b_title}`
-Artist: `{b_artist}`
-Track_ID: `{b_track_id}`
-"""
-                                
-                                new_val = f"""
-Title: `{a_title}`
-Artist: `{a_artist}`
-Track_ID: `{a_track_id}`
-"""
-
-                                embed.add_field(name = x+"_old", value=old_val, inline = True)
-                                embed.add_field(name = x+"_new", value=new_val, inline = True)
-                            else:
-                                embed.add_field(name = f"{x}_old ", value = f"{before_activities[x]}")
-                                embed.add_field(name = f"{x}_new ", value = f"{after_activities[x]}")
-                            
-                    #send embed
-                    message = await self.stat_channel.send(embed=embed)
-           
-                        
-                                         
-                    nested_dict = {"time" : datetime.now,
-                                   v : i,
-                                   "mid" : str(message.id)}
-                    return_dict[uid][v] = nested_dict
-
-        return return_dict
     
-    
-
-    @commands.command()
-    async def find_equality(self, user_before_activities, user_after_activities, uid):
+    @asyncio.coroutine
+    def find_equality(self, user_before_activities, user_after_activities, uid):
         #set typecases
         activity_typecases = {"<class 'discord.activity.Game'>" : "game_activity",
                               "<class 'discord.activity.CustomActivity'>" : "custom_activity",
@@ -137,15 +37,23 @@ Track_ID: `{a_track_id}`
         after_dict = {}
         
         for k, v in activity_typecases.items():
-            for b in user_before_activities:
-                if str(type(b)) == k:
-                    before_key_list.append(v)
-                    before_dict[v] = b
-                    
-            for a in user_after_activities:
-                if (str(type(a))) == k:
-                    after_key_list.append(v)
-                    after_dict[v] = a
+            if user_before_activities != None:
+                for b in user_before_activities:
+                    if str(type(b)) == k:
+                        before_key_list.append(v)
+                        before_dict[v] = b
+            
+            else:
+                before_key_list = []
+                 
+            if user_after_activities != None:
+                for a in user_after_activities:
+                    if (str(type(a))) == k:
+                        after_key_list.append(v)
+                        after_dict[v] = a
+            
+            else:
+                after_key_list = []
         
         return_value = {}
         #check if before_activites has key in after_activities 
@@ -207,9 +115,14 @@ Track_ID: `{a_track_id}`
                     user = guild.get_member(member.id)
                     if user.activity != None:
                         #assigning all current activities to self.current_activities
-                        filtered_user_activity = await self.sort_values(None, user.activities, member.id, "init")
-                        self.current_activities[member.id] = filtered_user_activity[member.id]
-
+                        filtered_user_activity = await self.find_equality({}, user.activities, member.id)
+                        status_code = filtered_user_activity["status_code"]
+                        embed = await self.sort_case(status_code, filtered_user_activity, user.id)
+                        
+                        message_snowflake = await self.stat_channel.send(embed=embed)
+                        #self.current_activities[member.id] = filtered_user_activity[member.id]
+        
+        '''
         #logging success
         await self.log_channel.send(f"""/// `[START] event-log` ///
 [{self.now()}] [SUCCESS] Event cogs imported
@@ -220,7 +133,7 @@ Track_ID: `{a_track_id}`
         for i in self.current_activities:
             user = await self.bot.fetch_user(i)
             await self.log_channel.send(f"[{self.now()}] ```[{user.name}#{user.discriminator}] {self.current_activities[i]}```")
-        await self.log_channel.send("/// `[END] event-log` ///")
+        await self.log_channel.send("/// `[END] event-log` ///")'''
 
 
     
@@ -239,18 +152,136 @@ Track_ID: `{a_track_id}`
         #ignores all bots if setting is toggled in config
         if self.ignore_bots and user.bot:
             return
-
+        
         if before.activities != after.activities:
+            embed = await self.activity_update(before, after)
+            await self.stat_channel.send(embed=embed)
+
+
+            
+            
+    def sort_spotify(self, case):
+        #scuffed fix but it works :)
+        if case["after_dict"]["spotify_activity"] != None:
+            a_spotify_title = case["after_dict"]["spotify_activity"].title
+            a_spotify_artist = case["after_dict"]["spotify_activity"].artist
+            a_spotify_track_id = case["after_dict"]["spotify_activity"].track_id
+        
+        else:
+            a_spotify_title = None
+            a_spotify_artist = None
+            a_spotify_track_id = None
+            
+        if case["before_dict"]["spotify_activity"] != None:
+            b_spotify_title = case["before_dict"]["spotify_activity"].title
+            b_spotify_artist = case["before_dict"]["spotify_activity"].artist
+            b_spotify_track_id = case["before_dict"]["spotify_activity"].track_id
+        
+        else:
+            b_spotify_title = None
+            b_spotify_artist = None
+            b_spotify_track_id = None
+            
+        old_val = f"""
+Title: `{b_spotify_title}`
+Artist: `{b_spotify_artist}`
+Track_ID: `{b_spotify_track_id}`
+"""
+        new_val = f"""
+Title: `{a_spotify_title}`
+Artist: `{a_spotify_artist}`
+Track_ID: `{a_spotify_track_id}`
+"""
+        
+        return [old_val, new_val]
+    
+    
+    @asyncio.coroutine
+    async def activity_update(self, before, after):
             #NOTE: before_activities is effectly current_acitivies
             before_activities = before.activities
+            after_activities = after.activities
             
             #print(self.current_activities)
             #print(before_activities==self.current_activities)
-            after_activities = await self.sort_values(before_activities, after.activities, after.id, "event-detection")
-            
-
-
+            case = await self.find_equality(before_activities, after_activities, after.id)
+            status_code = case["status_code"]
+            embed = await self.sort_case(status_code, case, after.id)
+                        
+            return embed  
         
+        
+    @asyncio.coroutine
+    async def sort_case(self, status_code, case, uid):
+        key_values = []
+        embed = None
+        user = await self.bot.fetch_user(uid)
+        
+        #get all current user activities
+        for i in  case["before_dict"]:
+            key_values.append(i)
+            
+        for key in key_values:
+            #if activities are the same
+            if status_code == 0:
+                if embed == None:
+                    embed = discord.Embed(title = f"[CYCLE CONTINUATION] [{self.now()}]",
+                                          url = "https://github.com/megumin00/league-uptime",
+                                          color = 0xff0000)
+                    embed.set_author(name=f"{user.name}#{user.discriminator}", icon_url = user.avatar_url)
+                
+                if key == "spotify_activity":
+                    val = self.sort_spotify(case)
+
+                    embed.add_field(name = "spotify_old", value=val[0], inline = True)
+                    embed.add_field(name = "spotify_new", value=val[1], inline = True)
+                    
+                else:
+                    
+                    embed.add_field(name = f"{key}_old", value=case["before_dict"][key], inline = True)
+                    embed.add_field(name = f"{key}_new", value=case["after_dict"][key], inline = True)
+                    
+            #if before has more than after (start of cycle)
+            elif status_code == 1:
+                if embed == None:
+                    embed = discord.Embed(title = f"[CYCLE INCREMENT] [{self.now()}]",
+                                          url = "https://github.com/megumin00/league-uptime",
+                                          color = 0xff0000)
+                    embed.set_author(name=f"{user.name}#{user.discriminator}", icon_url = user.avatar_url)
+                
+                if key == "spotify_activity":
+                    val = self.sort_spotify(case)
+
+                    embed.add_field(name = "spotify_old", value=val[0], inline = True)
+                    embed.add_field(name = "spotify_new", value=val[1], inline = True)
+                    
+                else:
+                    
+                    embed.add_field(name = f"{key}_old", value=case["before_dict"][key], inline = True)
+                    embed.add_field(name = f"{key}_new", value=case["after_dict"][key], inline = True)
+                #remove item from current_activites[uid]
+
+            #if after has more than before (end of cycle)
+            else:
+                if embed == None:
+                    embed = discord.Embed(title = f"[CYCLE END] [{self.now()}]",
+                                          url = "https://github.com/megumin00/league-uptime",
+                                          color = 0xff0000)
+                    embed.set_author(name=f"{user.name}#{user.discriminator}", icon_url = user.avatar_url)
+                
+                if key == "spotify_activity":
+                    val = self.sort_spotify(case)
+
+                    embed.add_field(name = "spotify_old", value=val[0], inline = True)
+                    embed.add_field(name = "spotify_new", value=val[1], inline = True)
+                    
+                else:
+                    embed.add_field(name = f"{key}_old", value=case["before_dict"][key], inline = True)
+                    embed.add_field(name = f"{key}_new", value=case["after_dict"][key], inline = True)
+                    
+        return embed
+    
+    
     def now(self):
         now = datetime.now()
         dt_string = now.strftime("`%H:%M:%S` `%d/%m/%Y`")
