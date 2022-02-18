@@ -27,7 +27,7 @@ Now includes/is planning to add functions to track user activity in general and 
 8. clean the code its spaghetti rn
 
 ## License
-GPL 3.0
+GPL-3.0
 
 ## Contributors
 suwa
